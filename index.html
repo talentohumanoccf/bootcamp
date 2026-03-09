@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruta de la Expedición - Hitos 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&family=Orbitron:wght@400;700;900&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: #004b8d;
+            --secondary: #e2b007;
+            --accent: #f37021;
+            --dark: #000000;
+            /* Deep black for perfect blending */
+            --road: #1e293b;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--dark);
+            color: #f8fafc;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+            scroll-snap-type: y proximity;
+            /* Enable vertical scroll snapping */
+        }
+
+        .heading-font {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .glass-card:hover {
+            border-color: var(--accent);
+            background: rgba(255, 255, 255, 0.07);
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .glow-text {
+            text-shadow: 0 0 20px rgba(243, 112, 33, 0.6), 0 0 40px rgba(243, 112, 33, 0.2);
+            background: linear-gradient(135deg, #fff 0%, var(--accent) 50%, #fff 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 200% auto;
+            animation: shine 5s linear infinite;
+        }
+
+        @keyframes shine {
+            to {
+                background-position: 200% center;
+            }
+        }
+
+        .road-container {
+            position: relative;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 100px 20px;
+        }
+
+        #roadmap-svg {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .road-path {
+            fill: none;
+            stroke: var(--road);
+            stroke-width: 80;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .road-dash {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.2);
+            stroke-width: 4;
+            stroke-dasharray: 20, 20;
+        }
+
+        .road-glow {
+            fill: none;
+            stroke: var(--accent);
+            stroke-width: 84;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            opacity: 0;
+            filter: blur(20px);
+            transition: opacity 0.5s ease;
+        }
+
+        .milestone {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            margin-bottom: 250px;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s ease-out;
+        }
+
+        .milestone.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .milestone {
+            scroll-snap-align: center;
+            /* Snap to each milestone */
+        }
+
+        .milestone:nth-child(even) {
+            flex-direction: row-reverse;
+        }
+
+        .milestone-content {
+            width: 45%;
+        }
+
+        /* Responsive adjustments for milestones */
+        @media (max-width: 768px) {
+
+            .milestone,
+            .milestone:nth-child(even) {
+                flex-direction: column;
+                text-align: center;
+                margin-bottom: 150px;
+            }
+
+            .milestone-content {
+                width: 100%;
+                margin-top: 40px;
+            }
+
+            #roadmap-svg {
+                opacity: 0.3;
+                /* Subtle on mobile to avoid clutter */
+            }
+        }
+
+        .pin {
+            width: 60px;
+            height: 60px;
+            background: rgba(0, 0, 0, 0.82);
+            border: 4px solid var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 30px rgba(243, 112, 33, 0.4);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            z-index: 20;
+            backdrop-filter: blur(5px);
+        }
+
+        .pin:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 50px var(--accent);
+        }
+
+        .pin-line {
+            position: absolute;
+            width: 4px;
+            height: 60px;
+            background: linear-gradient(to top, var(--accent), transparent);
+            bottom: 60px;
+        }
+
+        /* 3D Bus Animation Styles */
+        .bus-container {
+            position: absolute;
+            width: 180px;
+            /* Slightly larger for varied angles */
+            height: 180px;
+            z-index: 1000;
+            pointer-events: none;
+            overflow: visible;
+            /* Prevent clipping of light beams */
+            transform-style: preserve-3d;
+            perspective: 1200px;
+            display: block;
+            transition: opacity 0.5s ease;
+            mix-blend-mode: screen;
+            /* Aggressive contrast pushes grays to absolute black for screen mode */
+            filter: contrast(1.8) brightness(1.2) drop-shadow(0 15px 25px rgba(0,0,0,0.6));
+        }
+
+        #tour-bus {
+            width: 100%;
+            height: auto;
+            filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.8)) contrast(1.1) brightness(1.2);
+            transform-origin: center center;
+            transition: transform 0.3s ease-out;
+            image-rendering: high-quality;
+            margin-top: -20px;
+            /* Nudge bus up to sit accurately on the road */
+        }
+
+        .bus-shadow {
+            position: absolute;
+            width: 120px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 50%;
+            filter: blur(15px);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, 10px);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .bg-mesh {
+            background-color: var(--dark);
+            background-image:
+                radial-gradient(at 0% 0%, rgba(0, 75, 141, 0.2) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(243, 112, 33, 0.1) 0px, transparent 50%);
+            position: relative;
+        }
+
+        /* Particles Background */
+        #nebula-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .bus-sprite-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #nebula-canvas {
+            z-index: -1;
+            pointer-events: none;
+            opacity: 0.4;
+        }
+
+        /* energy pulse animation */
+        @keyframes pulse-flow {
+            to {
+                stroke-dashoffset: -100;
+            }
+        }
+
+        .road-dash {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.1);
+            stroke-width: 4;
+            stroke-dasharray: 20, 20;
+            animation: pulse-flow 2s linear infinite;
+        }
+
+        .road-glow {
+            fill: none;
+            stroke: var(--accent);
+            stroke-width: 84;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            opacity: 0;
+            filter: blur(30px);
+            transition: opacity 0.8s ease;
+        }
+
+        /* Bus Headlights - Anchored to front */
+        .headlights {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform-origin: 0% 50%;
+            /* Pivot exactly from the "bulb" point */
+            width: 350px;
+            height: 350px;
+            pointer-events: none;
+            z-index: 100;
+            background: radial-gradient(circle at 0% 50%, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.1) 40%, transparent 75%);
+            clip-path: polygon(0% 50%, 100% 15%, 100% 85%);
+            /* Precise cone shape */
+            opacity: 1;
+            /* Maximum visibility */
+            filter: blur(25px);
+            will-change: transform;
+        }
+
+        .bus-meta {
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 800;
+            white-space: nowrap;
+            box-shadow: 0 5px 15px rgba(243, 112, 33, 0.4);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .bus-meta::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 5px solid var(--accent);
+        }
+
+        /* Nav Menu Styles */
+        .gps-nav {
+            position: fixed;
+            right: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            pointer-events: all;
+        }
+
+        .gps-item {
+            width: 45px;
+            height: 45px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+            position: relative;
+        }
+
+        .gps-item:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            transform: scale(1.1);
+        }
+
+        .gps-item.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            box-shadow: 0 0 20px var(--accent);
+        }
+
+        .gps-label {
+            position: absolute;
+            right: 60px;
+            background: var(--accent);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            opacity: 0;
+            transform: translateX(10px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .gps-item:hover .gps-label {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    </style>
+</head>
+
+<body class="bg-mesh">
+    <canvas id="nebula-canvas"></canvas>
+
+    <!-- GPS NAVIGATION -->
+    <nav class="gps-nav">
+        <div class="gps-item active" onclick="scrollToStation(0)" title="Inicio">
+            <i data-lucide="home"></i>
+            <span class="gps-label">Inicio</span>
+        </div>
+        <div class="gps-item" onclick="scrollToStation(1)" data-station="1">
+            <i data-lucide="navigation"></i>
+            <span class="gps-label">Día 01</span>
+        </div>
+        <div class="gps-item" onclick="scrollToStation(2)" data-station="2">
+            <i data-lucide="target"></i>
+            <span class="gps-label">Idea Ganadora</span>
+        </div>
+        <div class="gps-item" onclick="scrollToStation(3)" data-station="3">
+            <i data-lucide="map"></i>
+            <span class="gps-label">Día 02</span>
+        </div>
+        <div class="gps-item" onclick="scrollToStation(4)" data-station="4">
+            <i data-lucide="trophy"></i>
+            <span class="gps-label">Pitch Final</span>
+        </div>
+        <div class="h-px w-8 bg-white/10 mx-auto my-2"></div>
+        <a href="https://script.google.com/macros/s/AKfycbzKZ_y31iaP7_j5qJahVrM9r3G7IF7X75Ama95-DzAwKetAJ-7MgZB2wis6tXpduQkQ/exec" 
+           target="_blank" 
+           class="gps-item bg-accent/20 border-accent/40" 
+           title="Entrar a la Aplicación">
+            <i data-lucide="rocket" class="text-accent"></i>
+            <span class="gps-label bg-accent">Lanzar App</span>
+        </a>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <section class="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden">
+        <div class="absolute inset-0 z-0">
+            <img src="roadmap_hero_background_1772189181488.png"
+                class="w-full h-full object-cover opacity-10 filter grayscale brightness-50">
+        </div>
+
+        <div class="relative z-10 text-center space-y-6">
+            <span
+                class="px-5 py-2 bg-accent/20 border border-accent/30 rounded-full text-xs font-black uppercase tracking-[0.5em] text-accent animate-pulse">
+                Expedición Hitos 2026
+            </span>
+            <h1 class="heading-font text-6xl md:text-9xl font-black italic tracking-tighter leading-tight glow-text">
+                NUESTRO<br><span class="text-white">RECORRIDO</span>
+            </h1>
+            <p class="text-slate-400 font-light max-w-2xl mx-auto uppercase text-xs tracking-[0.3em] leading-relaxed">
+                Cada hito es un paso estratégico hacia la transformación radical de Comfamiliar Risaralda
+            </p>
+            <div class="pt-8">
+                <a href="https://script.google.com/macros/s/AKfycbzKZ_y31iaP7_j5qJahVrM9r3G7IF7X75Ama95-DzAwKetAJ-7MgZB2wis6tXpduQkQ/exec" 
+                   target="_blank"
+                   class="inline-flex items-center gap-4 px-12 py-5 bg-accent text-white rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:scale-105 hover:shadow-[0_0_30px_rgba(243,112,33,0.5)] transition-all">
+                    Inicia la Expedición <i data-lucide="arrow-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="absolute bottom-12 animate-bounce opacity-30">
+            <i data-lucide="mouse-wheel" class="text-white mb-2"></i>
+            <i data-lucide="chevron-down" class="text-white mx-auto block"></i>
+        </div>
+    </section>
+
+    <!-- ROADMAP SECTION -->
+    <section class="relative bg-dark/40 py-20">
+        <div class="road-container" id="roadScrollContainer">
+            <!-- BUS 3D WRAPPER -->
+            <div id="bus-wrapper" class="bus-container">
+                <div class="bus-sprite-container" style="z-index: 5;">
+                    <img id="tour-bus" src="bus_s.png" alt="Tour Consotá Bus">
+                </div>
+                <!-- Preload all sprites to avoid flickering -->
+                <div style="display:none">
+                    <img src="bus_n.png"><img src="bus_ne.png"><img src="bus_e.png"><img src="bus_se.png">
+                    <img src="bus_s.png"><img src="bus_sw.png"><img src="bus_w.png"><img src="bus_nw.png">
+                </div>
+                <div class="headlights" style="z-index: 10;"></div>
+                <div id="bus-meta" class="bus-meta" style="z-index: 20;">CONSOTÁ: 0%</div>
+                <div class="bus-shadow" style="z-index: 1;"></div>
+            </div>
+
+            <!-- SVG ROAD - DYNAMIC -->
+            <svg id="roadmap-svg" viewBox="0 0 1000 3200" preserveAspectRatio="none">
+                <path id="mainPath" class="road-path" d="M 500 0 
+                    C 500 400, 100 400, 100 800 
+                    C 100 1200, 900 1200, 900 1600 
+                    C 900 2000, 100 2000, 100 2400
+                    C 100 2800, 500 2800, 500 3200" />
+                <path id="dashPath" class="road-dash" d="M 500 0 
+                    C 500 400, 100 400, 100 800 
+                    C 100 1200, 900 1200, 900 1600 
+                    C 900 2000, 100 2000, 100 2400
+                    C 100 2800, 500 2800, 500 3200" />
+                <path id="glowPath" class="road-glow" d="M 500 0 
+                    C 500 400, 100 400, 100 800 
+                    C 100 1200, 900 1200, 900 1600 
+                    C 900 2000, 100 2000, 100 2400
+                    C 100 2800, 500 2800, 500 3200" />
+            </svg>
+
+            <!-- MILESTONES -->
+
+            <!-- DAY 1 -->
+            <div class="milestone reveal-point" data-side="right">
+                <div class="milestone-content">
+                    <div class="glass-card p-10 rounded-[3rem] border-l-8 border-[#e2b007]">
+                        <span class="heading-font text-[#e2b007] font-black text-sm uppercase mb-4 block opacity-50">Día
+                            01</span>
+                        <h2
+                            class="heading-font text-4xl font-black uppercase tracking-tighter mb-6 glow-text text-white">
+                            Inmersión & Ideación</h2>
+                        <div class="space-y-6">
+                            <div class="flex gap-4">
+                                <div class="bg-blue-500/10 p-3 rounded-2xl text-blue-400"><i data-lucide="radio"
+                                        size="20"></i></div>
+                                <div>
+                                    <h4 class="font-black text-xs uppercase text-white">Radar de Dolores</h4>
+                                    <p class="text-[11px] text-slate-400 mt-1">Sintonización con las barreras reales del
+                                        afiliado.</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-4">
+                                <div class="bg-orange-500/10 p-3 rounded-2xl text-orange-400"><i data-lucide="wind"
+                                        size="20"></i></div>
+                                <div>
+                                    <h4 class="font-black text-xs uppercase text-white">Tormenta de Ideas</h4>
+                                    <p class="text-[11px] text-slate-400 mt-1">Generación de conceptos sin límites ni
+                                        fricciones.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex-1 flex justify-center">
+                    <div class="pin" style="border-color: #e2b007;"><i data-lucide="navigation"
+                            class="text-[#e2b007]"></i></div>
+                </div>
+            </div>
+
+            <!-- THE WINNER IDEA -->
+            <div class="milestone reveal-point" data-side="left">
+                <div class="milestone-content">
+                    <div class="glass-card p-10 rounded-[3rem] border-l-8 border-accent">
+                        <h3 class="heading-font text-2xl font-black uppercase text-accent mb-4">Hito: Rumbo Ganador</h3>
+                        <p class="text-slate-300 text-sm italic leading-relaxed">
+                            "Selección de la idea con mayor potencial de impacto y factibilidad para la caja."
+                        </p>
+                    </div>
+                </div>
+                <div class="flex-1 flex justify-center">
+                    <div class="pin" style="border-color: var(--accent);"><i data-lucide="target"
+                            class="text-accent"></i></div>
+                </div>
+            </div>
+
+            <!-- DAY 2 -->
+            <div class="milestone reveal-point" data-side="right">
+                <div class="milestone-content">
+                    <div class="glass-card p-10 rounded-[3rem] border-l-8 border-emerald-500">
+                        <span
+                            class="heading-font text-emerald-500 font-black text-sm uppercase mb-4 block opacity-50">Día
+                            02</span>
+                        <h2 class="heading-font text-4xl font-black uppercase tracking-tighter mb-6 text-white">Acción &
+                            Impacto</h2>
+                        <div class="space-y-6">
+                            <div class="flex gap-4">
+                                <div class="bg-purple-500/10 p-3 rounded-2xl text-purple-400"><i data-lucide="cpu"
+                                        size="20"></i></div>
+                                <div>
+                                    <h4 class="font-black text-xs uppercase text-white">Aterrizaje con IA</h4>
+                                    <p class="text-[11px] text-slate-400 mt-1">Gemini como copiloto para estructurar
+                                        prototipos.</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-4">
+                                <div class="bg-emerald-500/10 p-3 rounded-2xl text-emerald-400"><i data-lucide="camera"
+                                        size="20"></i></div>
+                                <div>
+                                    <h4 class="font-black text-xs uppercase text-white">Safari Real</h4>
+                                    <p class="text-[11px] text-slate-400 mt-1">Validación en campo con usuarios
+                                        Comfamiliar.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex-1 flex justify-center">
+                    <div class="pin" style="border-color: #10b981;"><i data-lucide="map" class="text-emerald-500"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FINAL PITCH -->
+            <div class="milestone reveal-point" data-side="left">
+                <div class="milestone-content">
+                    <div class="glass-card p-10 rounded-[3rem] bg-accent/10 border-accent/20">
+                        <div class="flex justify-between items-start mb-6">
+                            <h3 class="heading-font text-3xl font-black uppercase text-white">Pitch Final</h3>
+                            <div class="p-4 bg-accent rounded-full shadow-2xl shadow-accent/50"><i data-lucide="award"
+                                    class="text-white"></i></div>
+                        </div>
+                        <p class="text-slate-400 text-xs uppercase tracking-widest font-black">Entrega de Resultados
+                            ante Directivos</p>
+                    </div>
+                </div>
+                <div class="flex-1 flex justify-center">
+                    <div class="pin" style="border-color: #fff; box-shadow: 0 0 30px #fff;"><i data-lucide="trophy"
+                            class="text-white"></i></div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- CALL TO ACTION -->
+    <section class="py-40 text-center relative overflow-hidden bg-dark">
+        <div class="absolute inset-0 opacity-5">
+            <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]">
+            </div>
+        </div>
+        <div class="relative z-10 space-y-12">
+            <h3 class="heading-font text-4xl md:text-6xl font-black uppercase italic glow-text">¿Listos para despegar?
+            </h3>
+            <div class="flex flex-wrap justify-center gap-6">
+                <div
+                    class="px-10 py-5 border-2 border-white/5 bg-white/5 rounded-[2rem] text-xs font-black uppercase tracking-[0.4em] text-slate-400">
+                    Bajo Riesgo
+                </div>
+                <div
+                    class="px-10 py-5 border-2 border-accent/50 bg-accent/10 rounded-[2rem] text-xs font-black uppercase tracking-[0.4em] text-accent">
+                    Alto Impacto
+                </div>
+            </div>
+
+            <div class="pt-10">
+                <a href="https://script.google.com/macros/s/AKfycbzKZ_y31iaP7_j5qJahVrM9r3G7IF7X75Ama95-DzAwKetAJ-7MgZB2wis6tXpduQkQ/exec" 
+                   target="_blank"
+                   class="glass-card group inline-flex flex-col items-center gap-4 p-12 rounded-[4rem] border-accent/30 hover:border-accent">
+                    <div class="w-20 h-20 bg-accent rounded-full flex items-center justify-center shadow-2xl shadow-accent/50 group-hover:scale-110 transition-transform">
+                        <i data-lucide="rocket" class="text-white w-10 h-10"></i>
+                    </div>
+                    <div>
+                        <h4 class="heading-font text-2xl font-black text-white uppercase tracking-tighter">Entrar a la Aplicación</h4>
+                        <p class="text-accent text-[10px] font-black uppercase tracking-[0.3em] mt-2">Plataforma de Innovación 2026</p>
+                    </div>
+                </a>
+            </div>
+
+            <p class="text-slate-600 font-bold uppercase text-[10px] tracking-widest mt-20">Comfamiliar Risaralda &copy;
+                2026</p>
+        </div>
+    </section>
+
+    <script>
+        lucide.createIcons();
+
+        // Intersection Observer for Animations
+        const observerOptions = {
+            threshold: 0.2
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+
+                    // Trigger road glow on path near this milestone
+                    document.getElementById('glowPath').style.opacity = '1';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.milestone').forEach(el => observer.observe(el));
+
+        // SVG Road & Bus Animation with Advanced Physics (Lerp + Mirroring)
+        const tourBus = document.getElementById('tour-bus');
+        const busWrapper = document.getElementById('bus-wrapper');
+        const mainPath = document.getElementById('mainPath');
+        const roadSection = document.getElementById('roadScrollContainer');
+        const glowPath = document.getElementById('glowPath');
+        const dashPath = document.getElementById('dashPath');
+
+        // Physics State
+        let state = {
+            currentX: 0,
+            currentY: 0,
+            targetX: 0,
+            targetY: 0,
+            currentAngle: 0,
+            targetAngle: 0,
+            lastAngle: 0,
+            lerp: 0.1, // Smoothing factor
+            isMirrored: false
+        };
+
+        function updateBusState() {
+            const totalLength = mainPath.getTotalLength();
+            const viewportHeight = window.innerHeight;
+            const rect = roadSection.getBoundingClientRect();
+
+            // CENTERING FIX: We calculate progress based on the center of the viewport (40% offset)
+            // This ensures the bus is more "visible/centered" during the journey
+            const scrollOffset = viewportHeight * 0.4;
+            let progress = (viewportHeight - (rect.top + scrollOffset)) / (rect.height);
+            progress = Math.max(0, Math.min(1, progress));
+
+            // Update Meta Data
+            const meta = document.getElementById('bus-meta');
+            if (meta) meta.innerText = `Consotá: ${Math.round(progress * 100)}%`;
+
+            const currentDist = progress * totalLength;
+            const point = mainPath.getPointAtLength(currentDist);
+
+            // STABILIZATION: Look 20px ahead for a more stable local tangent
+            const lookAhead = 20;
+            const nextDist = Math.min(currentDist + lookAhead, totalLength);
+            const nextPoint = mainPath.getPointAtLength(nextDist);
+
+            // Calculate scale factors
+            const scaleX = roadSection.offsetWidth / 1000;
+            const scaleY = roadSection.offsetHeight / 3200;
+
+            state.targetX = point.x * scaleX;
+            state.targetY = point.y * scaleY;
+
+            // Tangent Angle Calculation
+            state.targetAngle = Math.atan2(nextPoint.y - point.y, nextPoint.x - point.x) * 180 / Math.PI;
+        }
+
+        // Initialize Nebula Canvas (Particles)
+        const canvas = document.getElementById('nebula-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function initParticles() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            particles = [];
+            for (let i = 0; i < 80; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 2 + 0.5,
+                    speed: Math.random() * 0.5 + 0.1,
+                    opacity: Math.random() * 0.5 + 0.2
+                });
+            }
+        }
+
+        function drawParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`;
+                ctx.fill();
+
+                // Slowly float upwards
+                p.y -= p.speed;
+                if (p.y < -10) p.y = canvas.height + 10;
+            });
+            requestAnimationFrame(drawParticles);
+        }
+
+        initParticles();
+        drawParticles();
+        window.addEventListener('resize', initParticles);
+
+        // Station Navigation Logic
+        function scrollToStation(index) {
+            const milestones = document.querySelectorAll('.milestone');
+            
+            if (index === 0) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else if (milestones[index - 1]) {
+                const target = milestones[index - 1];
+                const rect = target.getBoundingClientRect();
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                const targetY = rect.top + scrollTop - (window.innerHeight / 2) + (target.offsetHeight / 2);
+                
+                window.scrollTo({
+                    top: targetY,
+                    behavior: 'smooth'
+                });
+            }
+        }
+
+        function updateActiveGps(progress) {
+            const items = document.querySelectorAll('.gps-item');
+            let activeIdx = 0;
+
+            if (progress > 0.05) activeIdx = 1;
+            if (progress > 0.35) activeIdx = 2;
+            if (progress > 0.65) activeIdx = 3;
+            if (progress > 0.90) activeIdx = 4;
+
+            items.forEach((item, idx) => {
+                if (idx === activeIdx) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+        }
+
+        // Proximity Milestone Reaction
+        function checkMilestoneProximity(busX, busY) {
+            const milestones = document.querySelectorAll('.milestone');
+            milestones.forEach(m => {
+                const pin = m.querySelector('.pin');
+                const card = m.querySelector('.glass-card');
+                if (!pin || !card) return;
+
+                const pinRect = pin.getBoundingClientRect();
+                const busRect = busWrapper.getBoundingClientRect();
+
+                // Calculate distance between centers
+                const dx = (pinRect.left + pinRect.width / 2) - (busRect.left + busRect.width / 2);
+                const dy = (pinRect.top + pinRect.height / 2) - (busRect.top + busRect.height / 2);
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < 200) {
+                    const power = (200 - distance) / 200;
+                    pin.style.transform = `scale(${1 + power * 0.3})`;
+                    pin.style.boxShadow = `0 0 ${30 + power * 40}px var(--accent)`;
+                    card.style.borderColor = `rgba(243, 112, 33, ${0.1 + power * 0.6})`;
+                    card.style.transform = `translateY(${-(power * 10)}px) scale(${1 + power * 0.02})`;
+
+                    // Arrival Pulse Effect
+                    if (distance < 50) {
+                    glowPath.style.opacity = '1';
+                    const pulse = Math.sin(Date.now() / 200) * 15;
+                    glowPath.style.filter = `blur(${40 + pulse}px)`;
+                    }
+                } else {
+                    pin.style.transform = '';
+                    pin.style.boxShadow = '';
+                    card.style.borderColor = '';
+                    card.style.transform = '';
+                }
+            });
+        }
+
+        function animateBus() {
+            // Apply Lerp for smooth displacement
+            state.currentX += (state.targetX - state.currentX) * state.lerp;
+            state.currentY += (state.targetY - state.currentY) * state.lerp;
+
+            // Engine Vibration (Natural feel)
+            const bobbing = Math.sin(Date.now() / 150) * 1.5;
+
+            // Angle smoothing with wrap-around fix
+            let angleDiff = state.targetAngle - state.currentAngle;
+            if (angleDiff > 180) angleDiff -= 360;
+            if (angleDiff < -180) angleDiff += 360;
+            state.currentAngle += angleDiff * state.lerp;
+
+            // Apply Transforms (No container transition for instant follow)
+            busWrapper.style.left = `${state.currentX}px`;
+            busWrapper.style.top = `${state.currentY + bobbing}px`;
+
+            // MULTI-ANGLE SPRITE ENGINE:
+            let normAngle = state.currentAngle < 0 ? state.currentAngle + 360 : state.currentAngle;
+            let spriteName = 'bus_s.png';
+            let hOffset = { x: 0, y: 0, rotation: 0 };
+
+            if (normAngle >= 330 || normAngle < 30) {
+                spriteName = 'bus_e.png';
+                hOffset = { x: 45, y: 10, rotation: 0 };
+            } else if (normAngle >= 30 && normAngle < 60) {
+                spriteName = 'bus_se.png';
+                hOffset = { x: 35, y: 35, rotation: 45 };
+            } else if (normAngle >= 60 && normAngle < 120) {
+                spriteName = 'bus_s.png';
+                hOffset = { x: 0, y: 50, rotation: 90 };
+            } else if (normAngle >= 120 && normAngle < 150) {
+                spriteName = 'bus_sw.png';
+                hOffset = { x: -35, y: 35, rotation: 135 };
+            } else if (normAngle >= 150 && normAngle < 210) {
+                spriteName = 'bus_w.png';
+                hOffset = { x: -45, y: 10, rotation: 180 };
+            } else if (normAngle >= 210 && normAngle < 240) {
+                spriteName = 'bus_nw.png';
+                hOffset = { x: -35, y: -25, rotation: 225 };
+            } else if (normAngle >= 240 && normAngle < 300) {
+                spriteName = 'bus_n.png';
+                hOffset = { x: 0, y: -45, rotation: 270 };
+            } else if (normAngle >= 300 && normAngle < 330) {
+                spriteName = 'bus_ne.png';
+                hOffset = { x: 35, y: -25, rotation: 315 };
+            }
+
+            if (tourBus.src.indexOf(spriteName) === -1) {
+                tourBus.src = spriteName;
+            }
+
+            // Apply smooth 3D banking (independent of sprite angle)
+            let bankDelta = state.currentAngle - state.lastAngle;
+            if (bankDelta > 180) bankDelta -= 360;
+            if (bankDelta < -180) bankDelta += 360;
+            
+            const banking = Math.max(-15, Math.min(15, bankDelta * 8)); // increased sensitivity but clamped
+            tourBus.style.transform = `rotateY(${banking}deg) scale(1.15)`; 
+
+            const h = busWrapper.querySelector('.headlights');
+            if (h) {
+                // Determine direction based on angle
+                let angle = state.currentAngle < 0 ? state.currentAngle + 360 : state.currentAngle;
+                let ox = 0, oy = 0, rot = 90;
+
+                // Fine-tuned offsets for 180x180 wrapper
+                if (angle >= 337.5 || angle < 22.5) { // East
+                    ox = 45; oy = 10; rot = 0;
+                } else if (angle >= 22.5 && angle < 67.5) { // SE
+                    ox = 35; oy = 35; rot = 45;
+                } else if (angle >= 67.5 && angle < 112.5) { // South
+                    ox = 0; oy = 55; rot = 90;
+                } else if (angle >= 112.5 && angle < 157.5) { // SW
+                    ox = -35; oy = 35; rot = 135;
+                } else if (angle >= 157.5 && angle < 202.5) { // West
+                    ox = -55; oy = 10; rot = 180;
+                } else if (angle >= 202.5 && angle < 247.5) { // NW
+                    ox = -35; oy = -25; rot = 225;
+                } else if (angle >= 247.5 && angle < 292.5) { // North
+                    ox = 0; oy = -55; rot = 270;
+                } else { // NE
+                    ox = 35; oy = -25; rot = 315;
+                }
+
+                // transform-origin is 0 50%, translate moves the "bulb" and rotate points the cone
+                h.style.transform = `translate(${ox}px, ${oy-5}px) translateY(-50%) rotate(${rot + banking}deg)`;
+                h.style.opacity = '1';
+            }
+
+            const meta = document.getElementById('bus-meta');
+            if (meta) {
+                meta.style.transform = `translateX(-50%) scale(${1 + Math.abs(banking / 100)})`;
+            }
+
+            state.lastAngle = state.currentAngle;
+
+            // NEW: Check proximity
+            checkMilestoneProximity(state.currentX, state.currentY);
+
+            requestAnimationFrame(animateBus);
+        }
+
+        // Initialize state on first scroll
+        window.addEventListener('scroll', () => {
+            updateBusState();
+
+            // Subtle dash movement
+            dashPath.style.strokeDashoffset = -window.scrollY / 2;
+
+            // Adaptive glow opacity based on road progress
+            const viewportHeight = window.innerHeight;
+            const rect = roadSection.getBoundingClientRect();
+            const scrollOffset = viewportHeight * 0.4;
+            let progress = (viewportHeight - (rect.top + scrollOffset)) / (rect.height);
+            progress = Math.max(0, Math.min(1, progress));
+
+            const glowOpacity = Math.min(Math.max((progress * 2), 0), 0.8);
+            glowPath.style.opacity = glowOpacity;
+
+            // Update GPS Nav
+            updateActiveGps(progress);
+        });
+
+        window.addEventListener('resize', updateBusState);
+
+        // Start animation loop
+        updateBusState();
+        state.currentX = state.targetX;
+        state.currentY = state.targetY;
+        animateBus();
+
+        // Initial call
+        setTimeout(updateBusState, 500);
+    </script>
+</body>
+
+</html>
