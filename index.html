@@ -1253,8 +1253,13 @@
                 hOffset = { x: 35, y: -25, rotation: 315 };
             }
 
-            if (tourBus.src.indexOf(spriteName) === -1) {
-                tourBus.src = spriteName;
+            // Production Asset Support (Base64 from Assets.html)
+            const finalSrc = (typeof PRODUCTION_ASSETS !== 'undefined' && PRODUCTION_ASSETS[spriteName]) 
+                ? PRODUCTION_ASSETS[spriteName] 
+                : spriteName;
+
+            if (tourBus.src !== finalSrc) {
+                tourBus.src = finalSrc;
             }
 
             // Apply smooth 3D banking (independent of sprite angle)
