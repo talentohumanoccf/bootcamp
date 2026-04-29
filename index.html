@@ -400,10 +400,304 @@
             opacity: 1;
             transform: translateX(0);
         }
+
+        /* Boarding Pass / Ticket Styles */
+        #video-intro-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+            background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 1000px;
+            transition: opacity 1.5s cubic-bezier(0.4, 0, 0.2, 1), visibility 1.5s;
+        }
+
+        .ticket-system {
+            text-align: center;
+            z-index: 10;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: ticket-float 4s ease-in-out infinite;
+        }
+
+        .ticket-system.hidden {
+            opacity: 0;
+            transform: scale(0.5) rotateX(90deg);
+            pointer-events: none;
+        }
+
+        .boarding-pass {
+            width: 700px;
+            height: 320px;
+            background: linear-gradient(135deg, #fff 0%, #f0f0f0 100%);
+            border-radius: 20px;
+            display: flex;
+            position: relative;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+            color: #000;
+            overflow: hidden;
+        }
+
+        /* Perforated line */
+        .boarding-pass::before {
+            content: '';
+            position: absolute;
+            left: 65%;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            border-left: 3px dotted #ccc;
+            z-index: 2;
+        }
+
+        /* Semi-circles for ticket look */
+        .boarding-pass::after {
+            content: '';
+            position: absolute;
+            left: 65%;
+            top: -15px;
+            width: 30px;
+            height: 30px;
+            background: #111;
+            border-radius: 50%;
+            transform: translateX(-50%);
+        }
+
+        .ticket-notch-bottom {
+            position: absolute;
+            left: 65%;
+            bottom: -15px;
+            width: 30px;
+            height: 30px;
+            background: #111;
+            border-radius: 50%;
+            transform: translateX(-50%);
+            z-index: 3;
+        }
+
+        .ticket-left {
+            width: 65%;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            text-align: left;
+        }
+
+        .ticket-right {
+            width: 35%;
+            background: #fafafa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            border-left: 1px solid #eee;
+        }
+
+        .ticket-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 15px;
+        }
+
+        .ticket-logo {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            color: var(--accent);
+            font-size: 14px;
+        }
+
+        .ticket-type {
+            font-size: 10px;
+            font-weight: 900;
+            background: #000;
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 5px;
+            text-transform: uppercase;
+        }
+
+        .ticket-body {
+            margin-top: 20px;
+        }
+
+        .ticket-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 24px;
+            font-weight: 900;
+            letter-spacing: -1px;
+            color: #111;
+        }
+
+        .ticket-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .info-item label {
+            display: block;
+            font-size: 8px;
+            font-weight: 800;
+            color: #999;
+            text-transform: uppercase;
+        }
+
+        .info-item span {
+            font-size: 14px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .qr-code {
+            width: 160px;
+            height: 160px;
+            padding: 10px;
+            background: white;
+            border: 1px solid #eee;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .qr-code:hover {
+            transform: scale(1.15); /* Zoom effect for easy scan */
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+        }
+
+        .qr-label {
+            font-size: 8px;
+            font-weight: 900;
+            margin-top: 10px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        #start-engine-btn {
+            margin-top: 30px;
+            padding: 15px 40px;
+            background: #000;
+            color: white;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            border-radius: 10px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #start-engine-btn:hover {
+            background: var(--accent);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(243, 112, 33, 0.4);
+        }
+
+        @keyframes ticket-float {
+            0%, 100% { transform: translateY(0) rotateX(5deg); }
+            50% { transform: translateY(-20px) rotateX(10deg); }
+        }
+
+        #intro-video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        #intro-video.visible {
+            opacity: 1;
+        }
+
+        .fade-out {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            display: none; /* Completely remove from layout after fade */
+        }
+
+        /* Ensure all links are clickable */
+        a, button, .gps-item, .pin {
+            position: relative;
+            z-index: 5000 !important;
+            pointer-events: all !important;
+        }
     </style>
 </head>
 
 <body class="bg-mesh">
+    <!-- VIDEO INTRO OVERLAY -->
+    <div id="video-intro-container">
+        <!-- Ticket UI -->
+        <div class="ticket-system" id="ticket-ui">
+            <div class="boarding-pass">
+                <div class="ticket-left">
+                    <div class="ticket-header">
+                        <div class="flex items-center gap-4">
+                            <img src="https://i.imgur.com/yyI6FWO.png" class="h-8 object-contain" style="filter: brightness(0);" alt="Logo Comfamiliar">
+                            <div class="ticket-logo">EXPEDICIÓN HITOS 2026</div>
+                        </div>
+                        <div class="ticket-type">Boarding Pass</div>
+                    </div>
+                    <div class="ticket-body">
+                        <h1 class="ticket-title">DISEÑO ESTRATÉGICO</h1>
+                        <div class="ticket-info">
+                            <div class="info-item">
+                                <label>Pasajero</label>
+                                <span>Agentes PMO Comfamiliar</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Destino</label>
+                                <span>COMFAMILIAR 2026</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Puerta</label>
+                                <span>BUS CONSOTÁ</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Asiento</label>
+                                <span>VIP - FRONT ROW</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ticket-notch-bottom"></div>
+                </div>
+                <div class="ticket-right">
+                    <img src="https://i.imgur.com/pe0xbmz.png" class="qr-code" alt="QR Asistencia">
+                    <div class="qr-label">Registrar Asistencia</div>
+                </div>
+            </div>
+            
+            <button id="start-engine-btn">
+                <i data-lucide="play" size="20"></i>
+                VALIDAR Y ARRANCAR
+            </button>
+            <p class="text-white/20 text-[9px] mt-6 tracking-[0.3em] uppercase font-bold">Escanea tu tiquete para registrarte</p>
+        </div>
+
+        <video id="intro-video" playsinline>
+            <source src="https://i.imgur.com/4MQoB4W.mp4" type="video/mp4">
+        </video>
+    </div>
+
+    <?!= include('Assets'); ?>
     <canvas id="nebula-canvas"></canvas>
 
     <!-- GPS NAVIGATION -->
@@ -439,7 +733,7 @@
     </nav>
 
     <!-- HERO SECTION -->
-    <section class="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden">
+    <section id="hero-section" class="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden">
         <div class="absolute inset-0 z-0">
             <img src="roadmap_hero_background_1772189181488.png"
                 class="w-full h-full object-cover opacity-10 filter grayscale brightness-50">
@@ -656,13 +950,72 @@
                 </a>
             </div>
 
-            <p class="text-slate-600 font-bold uppercase text-[10px] tracking-widest mt-20">Comfamiliar Risaralda &copy;
-                2026</p>
+    <!-- NOTEBOOK LM DEEP DIVE -->
+    <section class="py-20 pb-40 bg-dark/60 relative">
+        <div class="max-w-4xl mx-auto px-6">
+            <div class="glass-card p-12 rounded-[3rem] border-white/10 flex flex-col md:flex-row items-center gap-10 hover:border-accent/40 transition-all group">
+                <div class="w-32 h-32 bg-white/5 rounded-3xl flex items-center justify-center border border-white/10 group-hover:scale-110 transition-transform">
+                    <i data-lucide="book-open-check" class="text-accent w-16 h-16"></i>
+                </div>
+                <div class="flex-1 text-center md:text-left">
+                    <span class="text-accent text-[10px] font-black uppercase tracking-[0.4em] mb-4 block">Recurso Alternativo</span>
+                    <h3 class="heading-font text-3xl font-black text-white uppercase mb-4">Dossier de Profundización</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-8">
+                        Explora la documentación detallada, análisis de datos y la narrativa completa de la expedición en nuestro entorno inteligente de NotebookLM.
+                    </p>
+                    <a href="https://notebooklm.google.com/notebook/85692c45-7210-421e-9277-bda1097a56f7/artifact/14da0ece-018d-4445-97b2-a10d7a45150e?utm_source=nlm_web_share&utm_medium=google_oo&utm_campaign=art_share_1&utm_content=&utm_smc=nlm_web_share_google_oo_art_share_1_" 
+                       target="_blank"
+                       class="inline-flex items-center gap-3 px-8 py-4 bg-white text-black rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-accent hover:text-white transition-colors">
+                        Ver Presentación Completa <i data-lucide="external-link" size="16"></i>
+                    </a>
+                </div>
+            </div>
         </div>
     </section>
 
+    <p class="text-slate-600 text-center font-bold uppercase text-[10px] tracking-widest pb-20">Comfamiliar Risaralda &copy; 2026</p>
+
     <script>
         lucide.createIcons();
+
+        // Video Intro Logic
+        const introContainer = document.getElementById('video-intro-container');
+        const introVideo = document.getElementById('intro-video');
+        const ticketUi = document.getElementById('ticket-ui');
+        const startBtn = document.getElementById('start-engine-btn');
+
+        startBtn.onclick = () => {
+            // 1. Hide UI with a cool scale-down effect
+            ticketUi.classList.add('hidden');
+            
+            // 2. Show and Play Video
+            setTimeout(() => {
+                introVideo.classList.add('visible');
+                introVideo.play();
+            }, 300);
+
+            // 3. Auto transition when video ends
+            introVideo.onended = () => {
+                introContainer.classList.add('fade-out');
+                document.body.style.overflow = 'auto';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            };
+
+            // Fallback: If video hangs or user is impatient, click video to skip
+            introVideo.onclick = () => {
+                introContainer.classList.add('fade-out');
+                document.body.style.overflow = 'auto';
+            };
+
+            // Emergency timeout (30s) to unlock everything no matter what
+            setTimeout(() => {
+                introContainer.classList.add('fade-out');
+                document.body.style.overflow = 'auto';
+            }, 30000);
+        };
+
+        // Disable scroll during intro
+        document.body.style.overflow = 'hidden';
 
         // Intersection Observer for Animations
         const observerOptions = {
