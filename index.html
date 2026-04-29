@@ -770,14 +770,18 @@
         <div class="road-container" id="roadScrollContainer">
             <!-- BUS 3D WRAPPER -->
             <div id="bus-wrapper" class="bus-container">
-                <div class="bus-sprite-container" style="z-index: 5;">
-                    <img id="tour-bus" src="bus_s.png" alt="Tour Consotá Bus">
+                <!-- ICON FALLBACK (Always works) -->
+                <div id="bus-icon-fallback" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; z-index:1;">
+                    <div style="background: rgba(243, 112, 33, 0.2); padding: 15px; border-radius: 20px; border: 2px solid var(--accent); box-shadow: 0 0 30px rgba(243, 112, 33, 0.5);">
+                        <i data-lucide="bus" style="width:60px; height:60px; color:white;"></i>
+                    </div>
                 </div>
-                <!-- Preload all sprites to avoid flickering -->
-                <div style="display:none">
-                    <img src="bus_n.png"><img src="bus_ne.png"><img src="bus_e.png"><img src="bus_se.png">
-                    <img src="bus_s.png"><img src="bus_sw.png"><img src="bus_w.png"><img src="bus_nw.png">
-                </div>
+                
+                <!-- PNG Sprite (Visible only if loaded) -->
+                <img id="tour-bus" src="bus_s.png" alt="Bus" 
+                     onload="document.getElementById('bus-icon-fallback').style.display='none'"
+                     style="position:relative; z-index:5; width:100%; height:auto; display:block;">
+                
                 <div class="headlights" style="z-index: 10;"></div>
                 <div id="bus-meta" class="bus-meta" style="z-index: 20;">CONSOTÁ: 0%</div>
                 <div class="bus-shadow" style="z-index: 1;"></div>
