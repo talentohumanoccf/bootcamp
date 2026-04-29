@@ -1254,12 +1254,19 @@
             }
 
             // Production Asset Support (Base64 from Assets.html)
-            const finalSrc = (typeof PRODUCTION_ASSETS !== 'undefined' && PRODUCTION_ASSETS[spriteName]) 
-                ? PRODUCTION_ASSETS[spriteName] 
-                : spriteName;
+            let finalSrc = spriteName;
+            
+            if (typeof PRODUCTION_ASSETS !== 'undefined' && PRODUCTION_ASSETS[spriteName]) {
+                finalSrc = PRODUCTION_ASSETS[spriteName];
+            } else {
+                if (window.location.hostname.includes('googleusercontent.com')) {
+                    console.warn("ADVERTENCIA: No se encontró PRODUCTION_ASSETS. El bus no cargará en producción sin Assets.html correctamente vinculado.");
+                }
+            }
 
             if (tourBus.src !== finalSrc) {
                 tourBus.src = finalSrc;
+                tourBus.onerror = () => console.error("Error cargando sprite del bus:", finalSrc.substring(0, 50) + "...");
             }
 
             // Apply smooth 3D banking (independent of sprite angle)
